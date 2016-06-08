@@ -54,6 +54,9 @@ class Worker extends IlluminateWorker
     {
         $this->entityManager->clear();
 
+        $this->assertEntityManagerOpen();
+        $this->assertGoodDatabaseConnection();
+
         try {
             $this->pop($connectionName, $queue, $delay, $sleep, $maxTries);
         } catch (Exception $e) {
@@ -64,10 +67,29 @@ class Worker extends IlluminateWorker
             if ($this->exceptions) {
                 $this->exceptions->report(new FatalThrowableError($e));
             }
-        } finally {
-            if (!$this->entityManager->isOpen()) {
-                $this->stop();
-            }
+        }
+    }
+
+    private function assertEntityManagerOpen()
+    {
+        if ($this->entityManager->isOpen()) {
+            return;
+        }
+
+        if ($this->exceptions) {
+            $this->exceptions->report(new EntityManagerClosedException);
+        }
+
+        $this->stop();
+    }
+
+    private function assertGoodDatabaseConnection()
+    {
+        $connection = $this->entityManager->getConnection();
+
+        if ($connection->ping() === false) {
+            $connection->close();
+            $connection->connect();
         }
     }
 }
