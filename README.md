@@ -4,7 +4,7 @@ A Laravel Queue worker that's safe for use with Laravel Doctrine
 
 #### When to use SafeQueue
 
-- [x] You use Laravel 5.2
+- [x] You use Laravel 5
 - [x] You use Laravel Doctrine
 - [x] Devops say the CPU usage of `queue:listen` is unacceptable
 - [x] You want to do `php artisan queue:work --daemon` without hitting cascading `EntityManager is closed` exceptions
