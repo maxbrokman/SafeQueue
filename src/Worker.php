@@ -123,7 +123,6 @@ class Worker extends IlluminateWorker
         try {
             $this->pop($connectionName, $queue, $delay, $sleep, $maxTries);
         } catch (Exception $e) {
-            //dd($e);
             if ($this->exceptions) {
                 $this->exceptions->report($e);
             }
@@ -132,7 +131,6 @@ class Worker extends IlluminateWorker
                 return false;
             }
         } catch (Throwable $e) {
-            dd($e);
             if ($this->exceptions) {
                 $this->exceptions->report(new FatalThrowableError($e));
             }
