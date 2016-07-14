@@ -1,5 +1,9 @@
 ## SafeQueue
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg?style=flat-square)](https://packagist.org/packages/maxbrokman/safe-queue)
+[![Build Status](https://img.shields.io/travis/maxbrokman/SafeQueue.svg?maxAge=2592000?style=flat-square)](https://travis-ci.org/maxbrokman/SafeQueue)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+
 A Laravel Queue worker that's safe for use with Laravel Doctrine
 
 #### When to use SafeQueue
@@ -17,7 +21,11 @@ before working each job.
 
 #### Installation
 
-Once I've put this on packagist I'll add instructions here, but for now you're on your own! I suggest using composer.
+Install using composer
+
+```
+composer require maxbrokman/safe-queue
+```
 
 Once you've got the codez add the following to your service providers in `app.php`
 
@@ -42,18 +50,6 @@ vendor/bin/php-cs-fixer fix
 vendor/bin/phpunit
 ```
 
-#### But.... Why are the Tests so Rubbish???
-
-I've had to write this very quickly for my day job (which is a poor excuse I know). The problem with testing the queue
-worker is that it is designed to not exist (it's a daemon). Of course you can make it hit its exit condition, but then it
-literally calls `exit` which of course breaks phpunit.
-
-I've decided to leave this uncovered by tests rather than override more code than is necessary just to make it testable.
-
-If it makes you feel better the overridden code isn't tested in Laravel either!
-
-Fell free to PR test coverage improvements if you're smarter than me.
-
 #### Maintenance
 
-I need this for work so it will probably be kept up to date but not making any promises.
+I maintain this as part of my day job, please open any issues on Github
