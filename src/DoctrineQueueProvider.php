@@ -6,7 +6,9 @@ namespace MaxBrokman\SafeQueue;
 use Illuminate\Support\ServiceProvider;
 use MaxBrokman\SafeQueue\Console\WorkCommand;
 
-/
+/**
+ * @codeCoverageIgnore
+ */
 class DoctrineQueueProvider extends ServiceProvider
 {
     /**
