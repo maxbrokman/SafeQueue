@@ -16,7 +16,8 @@
     "require-dev": {
         "phpunit/phpunit": "^5.3",
         "mockery/mockery": "^0.9.4",
-        "fabpot/php-cs-fixer": "^1.11"
+        "fabpot/php-cs-fixer": "^1.11",
+        "satooshi/php-coveralls": "^1.0"
     },
     "autoload": {
         "psr-4": {
