@@ -18,6 +18,10 @@ class Worker extends IlluminateWorker
      * @var EntityManager
      */
     private $entityManager;
+    /**
+     * @var Stopper
+     */
+    private $stopper;
 
     /**
      * Worker constructor.
@@ -25,16 +29,65 @@ class Worker extends IlluminateWorker
      * @param FailedJobProviderInterface $failer
      * @param Dispatcher                 $events
      * @param EntityManager              $entityManager
+     * @param Stopper                    $stopper
      */
     public function __construct(
         QueueManager $manager,
         FailedJobProviderInterface $failer,
         Dispatcher $events,
-        EntityManager $entityManager
+        EntityManager $entityManager,
+        Stopper $stopper
     ) {
         parent::__construct($manager, $failer, $events);
 
         $this->entityManager = $entityManager;
+        $this->stopper       = $stopper;
+    }
+
+    /**
+     * Listen to the given queue and work jobs from it without re-booting the framework.
+     *
+     * This is a slight re-working of the parent implementation to aid testing.
+     *
+     * @param  string $connectionName
+     * @param  null   $queue
+     * @param  int    $delay
+     * @param  int    $memory
+     * @param  int    $sleep
+     * @param  int    $maxTries
+     * @return void
+     */
+    public function daemon($connectionName, $queue = null, $delay = 0, $memory = 128, $sleep = 3, $maxTries = 0)
+    {
+        $lastRestart = $this->getTimestampOfLastQueueRestart();
+
+        while (true) {
+            if ($this->daemonShouldRun()) {
+                $canContinue = $this->runNextJobForDaemon(
+                    $connectionName, $queue, $delay, $sleep, $maxTries
+                );
+
+                if ($canContinue === false) {
+                    break;
+                }
+            } else {
+                $this->sleep($sleep);
+            }
+
+            if ($this->memoryExceeded($memory) || $this->queueShouldRestart($lastRestart)) {
+                break;
+            }
+        }
+
+        $this->stop();
+    }
+
+    /**
+     * Overridden to allow testing.
+     */
+    public function stop()
+    {
+        $this->stopper->stop();
     }
 
     /**
@@ -44,17 +97,27 @@ class Worker extends IlluminateWorker
      * We also clear the entity manager before working a job for good measure, this will help us better
      * simulate a single request model.
      *
-     * @param string $connectionName
-     * @param string $queue
-     * @param int    $delay
-     * @param int    $sleep
-     * @param int    $maxTries
+     * @param  string $connectionName
+     * @param  string $queue
+     * @param  int    $delay
+     * @param  int    $sleep
+     * @param  int    $maxTries
+     * @return bool
      */
     protected function runNextJobForDaemon($connectionName, $queue, $delay, $sleep, $maxTries)
     {
         $this->entityManager->clear();
 
-        $this->assertEntityManagerOpen();
+        try {
+            $this->assertEntityManagerOpen();
+        } catch (EntityManagerClosedException $e) {
+            if ($this->exceptions) {
+                $this->exceptions->report(new EntityManagerClosedException);
+            }
+
+            return false;
+        }
+
         $this->assertGoodDatabaseConnection();
 
         try {
@@ -63,26 +126,40 @@ class Worker extends IlluminateWorker
             if ($this->exceptions) {
                 $this->exceptions->report($e);
             }
+
+            if ($e instanceof QueueMustStop) {
+                return false;
+            }
         } catch (Throwable $e) {
             if ($this->exceptions) {
                 $this->exceptions->report(new FatalThrowableError($e));
             }
+
+            if ($e instanceof QueueMustStop) {
+                return false;
+            }
         }
+
+        return true;
     }
 
+    /**
+     * @throws EntityManagerClosedException
+     */
     private function assertEntityManagerOpen()
     {
         if ($this->entityManager->isOpen()) {
             return;
         }
 
-        if ($this->exceptions) {
-            $this->exceptions->report(new EntityManagerClosedException);
-        }
-
-        $this->stop();
+        throw new EntityManagerClosedException;
     }
 
+    /**
+     * Some database systems close the connection after a period of time, in MySQL this is system variable
+     * `wait_timeout`. Given the daemon is meant to run indefinitely we need to make sure we have an open
+     * connection before working any job. Otherwise we would see `MySQL has gone away` type errors.
+     */
     private function assertGoodDatabaseConnection()
     {
         $connection = $this->entityManager->getConnection();
