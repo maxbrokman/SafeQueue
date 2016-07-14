@@ -6,6 +6,7 @@ namespace MaxBrokman\SafeQueue;
 use Illuminate\Support\ServiceProvider;
 use MaxBrokman\SafeQueue\Console\WorkCommand;
 
+/
 class DoctrineQueueProvider extends ServiceProvider
 {
     /**
@@ -26,7 +27,7 @@ class DoctrineQueueProvider extends ServiceProvider
         $this->registerWorkCommand();
 
         $this->app->singleton('safeQueue.worker', function ($app) {
-            return new Worker($app['queue'], $app['queue.failer'], $app['events'], $app['em']);
+            return new Worker($app['queue'], $app['queue.failer'], $app['events'], $app['em'], new Stopper());
         });
     }
 
