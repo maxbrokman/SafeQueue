@@ -139,7 +139,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job->shouldReceive('fire')->never();
         $this->prepareToRunJob($job);
 
-        $this->worker->daemon('test', null, 0, 128, 3, 0);
+        $this->worker->daemon('test', null, 0, 128, 0, 0);
     }
 
     public function testReconnected()
@@ -164,7 +164,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job->shouldIgnoreMissing();
         $this->prepareToRunJob($job);
 
-        $this->worker->daemon('test', null, 0, 128, 3, 0);
+        $this->worker->daemon('test', null, 0, 128, 0, 0);
     }
 
     public function testLoops()
@@ -190,7 +190,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         $this->prepareToRunJob([$jobOne, $jobTwo]);
 
-        $this->worker->daemon('test', null, 0, 128, 3, 0);
+        $this->worker->daemon('test', null, 0, 128, 0, 0);
     }
 
     public function testRestartsNicely()

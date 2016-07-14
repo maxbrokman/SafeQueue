@@ -12,7 +12,7 @@ use Illuminate\Queue\Worker as IlluminateWorker;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-class Worker extends IlluminateWorker
+final class Worker extends IlluminateWorker
 {
     /**
      * @var EntityManager
@@ -121,7 +121,7 @@ class Worker extends IlluminateWorker
         $this->assertGoodDatabaseConnection();
 
         try {
-            $this->pop($connectionName, $queue, $delay, $sleep, $maxTries);
+            $this->daemonPop($connectionName, $queue, $delay, $sleep, $maxTries);
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
@@ -141,6 +141,37 @@ class Worker extends IlluminateWorker
         }
 
         return true;
+    }
+
+    /**
+     * We also have to override this method, because Laravel swallows exceptions down here as well (presumably
+     * because this is shared between work and daemon)
+     *
+     * @param string $connectionName
+     * @param string $queue
+     * @param int $delay
+     * @param int $sleep
+     * @param int $maxTries
+     * @return array
+     */
+    private function daemonPop($connectionName, $queue = null, $delay = 0, $sleep = 3, $maxTries = 0)
+    {
+        $connection = $this->manager->connection($connectionName);
+
+        $job = $this->getNextJob($connection, $queue);
+
+        // If we're able to pull a job off of the stack, we will process it and
+        // then immediately return back out. If there is no job on the queue
+        // we will "sleep" the worker for the specified number of seconds.
+        if (!is_null($job)) {
+            return $this->process(
+                $this->manager->getName($connectionName), $job, $maxTries, $delay
+            );
+        }
+
+        $this->sleep($sleep);
+
+        return ['job' => null, 'failed' => false];
     }
 
     /**
