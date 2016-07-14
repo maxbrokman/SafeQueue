@@ -12,7 +12,7 @@ use Illuminate\Queue\Worker as IlluminateWorker;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-final class Worker extends IlluminateWorker
+/*final*/ class Worker extends IlluminateWorker
 {
     /**
      * @var EntityManager
