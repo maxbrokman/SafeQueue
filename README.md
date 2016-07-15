@@ -2,6 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg?style=flat-square)](https://packagist.org/packages/maxbrokman/safe-queue)
 [![Build Status](https://img.shields.io/travis/maxbrokman/SafeQueue.svg?maxAge=2592000?style=flat-square)](https://travis-ci.org/maxbrokman/SafeQueue)
+[![Test Coverage](https://img.shields.io/coveralls/maxbrokman/SafeQueue.svg?maxAge=2592000?style=flat-square)](https://coveralls.io/github/maxbrokman/SafeQueue)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
