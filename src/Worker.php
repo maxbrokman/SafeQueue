@@ -5,10 +5,12 @@ namespace MaxBrokman\SafeQueue;
 
 use Doctrine\ORM\EntityManager;
 use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
+use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
@@ -30,15 +32,17 @@ use Throwable;
      * @param Dispatcher                 $events
      * @param EntityManager              $entityManager
      * @param Stopper                    $stopper
+     * @param ExceptionHandler           $exceptions
      */
     public function __construct(
         QueueManager $manager,
         FailedJobProviderInterface $failer,
         Dispatcher $events,
         EntityManager $entityManager,
-        Stopper $stopper
+        Stopper $stopper,
+        ExceptionHandler $exceptions
     ) {
-        parent::__construct($manager, $failer, $events);
+        parent::__construct($manager, $events, $exceptions);
 
         $this->entityManager = $entityManager;
         $this->stopper       = $stopper;
@@ -49,32 +53,29 @@ use Throwable;
      *
      * This is a slight re-working of the parent implementation to aid testing.
      *
-     * @param  string $connectionName
-     * @param  null   $queue
-     * @param  int    $delay
-     * @param  int    $memory
-     * @param  int    $sleep
-     * @param  int    $maxTries
+     * @param  string                          $connectionName
+     * @param  null                            $queue
+     * @param  \Illuminate\Queue\WorkerOptions $options
      * @return void
      */
-    public function daemon($connectionName, $queue = null, $delay = 0, $memory = 128, $sleep = 3, $maxTries = 0)
+    public function daemon($connectionName, $queue = null, WorkerOptions $options)
     {
         $lastRestart = $this->getTimestampOfLastQueueRestart();
 
         while (true) {
             if ($this->daemonShouldRun()) {
                 $canContinue = $this->runNextJobForDaemon(
-                    $connectionName, $queue, $delay, $sleep, $maxTries
+                    $connectionName, $queue, $options
                 );
 
                 if ($canContinue === false) {
                     break;
                 }
             } else {
-                $this->sleep($sleep);
+                $this->sleep($options->sleep);
             }
 
-            if ($this->memoryExceeded($memory) || $this->queueShouldRestart($lastRestart)) {
+            if ($this->memoryExceeded($options->memory) || $this->queueShouldRestart($lastRestart)) {
                 break;
             }
         }
@@ -97,14 +98,12 @@ use Throwable;
      * We also clear the entity manager before working a job for good measure, this will help us better
      * simulate a single request model.
      *
-     * @param  string $connectionName
-     * @param  string $queue
-     * @param  int    $delay
-     * @param  int    $sleep
-     * @param  int    $maxTries
+     * @param  string                          $connectionName
+     * @param  string                          $queue
+     * @param  \Illuminate\Queue\WorkerOptions $options
      * @return bool
      */
-    protected function runNextJobForDaemon($connectionName, $queue, $delay, $sleep, $maxTries)
+    protected function runNextJobForDaemon($connectionName, $queue, WorkerOptions $options)
     {
         $this->entityManager->clear();
 
@@ -121,7 +120,7 @@ use Throwable;
         $this->assertGoodDatabaseConnection();
 
         try {
-            $this->daemonPop($connectionName, $queue, $delay, $sleep, $maxTries);
+            $this->daemonPop($connectionName, $queue, $options);
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
@@ -147,14 +146,12 @@ use Throwable;
      * We also have to override this method, because Laravel swallows exceptions down here as well (presumably
      * because this is shared between work and daemon)
      *
-     * @param string $connectionName
-     * @param string $queue
-     * @param int $delay
-     * @param int $sleep
-     * @param int $maxTries
+     * @param  string        $connectionName
+     * @param  string        $queue
+     * @param  WorkerOptions $options
      * @return array
      */
-    private function daemonPop($connectionName, $queue = null, $delay = 0, $sleep = 3, $maxTries = 0)
+    private function daemonPop($connectionName, $queue = null, WorkerOptions $options)
     {
         $connection = $this->manager->connection($connectionName);
 
@@ -165,11 +162,11 @@ use Throwable;
         // we will "sleep" the worker for the specified number of seconds.
         if (!is_null($job)) {
             return $this->process(
-                $this->manager->getName($connectionName), $job, $maxTries, $delay
+                $this->manager->getName($connectionName), $job, $options
             );
         }
 
-        $this->sleep($sleep);
+        $this->sleep($options->sleep);
 
         return ['job' => null, 'failed' => false];
     }
