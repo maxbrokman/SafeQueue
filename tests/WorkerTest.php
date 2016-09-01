@@ -13,6 +13,7 @@ use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
+use Illuminate\Queue\WorkerOptions;
 use MaxBrokman\SafeQueue\EntityManagerClosedException;
 use MaxBrokman\SafeQueue\QueueMustStop;
 use MaxBrokman\SafeQueue\Stopper;
@@ -69,6 +70,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
      */
     private $worker;
 
+    private $options;
+
     protected function setUp()
     {
         $this->queueManager  = m::mock(QueueManager::class);
@@ -82,9 +85,9 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->stopper       = m::mock(Stopper::class);
 
         $this->worker = new Worker($this->queueManager, $this->failedJobs, $this->dispatcher, $this->entityManager,
-            $this->stopper);
+            $this->stopper, $this->exceptions);
 
-        $this->worker->setDaemonExceptionHandler($this->exceptions);
+        $this->options = new WorkerOptions(0, 128, 0, 0, 0);
 
         // Not interested in events
         $this->dispatcher->shouldIgnoreMissing();
@@ -139,7 +142,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job->shouldReceive('fire')->never();
         $this->prepareToRunJob($job);
 
-        $this->worker->daemon('test', null, 0, 128, 0, 0);
+        $this->worker->daemon('test', null, $this->options);
     }
 
     public function testReconnected()
@@ -164,7 +167,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job->shouldIgnoreMissing();
         $this->prepareToRunJob($job);
 
-        $this->worker->daemon('test', null, 0, 128, 0, 0);
+        $this->worker->daemon('test', null, $this->options);
     }
 
     public function testLoops()
@@ -190,7 +193,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         $this->prepareToRunJob([$jobOne, $jobTwo]);
 
-        $this->worker->daemon('test', null, 0, 128, 0, 0);
+        $this->worker->daemon('test', null, $this->options);
     }
 
     public function testRestartsNicely()
@@ -206,7 +209,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
 
-        $this->worker->daemon('test', null, 0, 128, 0, 0);
+        $this->worker->daemon('test', null, $this->options);
     }
 }
 
