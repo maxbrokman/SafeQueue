@@ -69,7 +69,10 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
      * @var Worker
      */
     private $worker;
-
+    
+    /**
+     * @var WorkerOptions
+     */
     private $options;
 
     protected function setUp()
