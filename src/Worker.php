@@ -58,7 +58,7 @@ use Throwable;
      * @param  \Illuminate\Queue\WorkerOptions $options
      * @return void
      */
-    public function daemon($connectionName, $queue = null, WorkerOptions $options)
+    public function daemon($connectionName, $queue, WorkerOptions $options)
     {
         $lastRestart = $this->getTimestampOfLastQueueRestart();
 
@@ -120,7 +120,7 @@ use Throwable;
         $this->assertGoodDatabaseConnection();
 
         try {
-            $this->daemonPop($connectionName, $queue, $options);
+            parent::runNextJobForDaemon($connectionName, $queue, $options);
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
@@ -149,9 +149,9 @@ use Throwable;
      * @param  string        $connectionName
      * @param  string        $queue
      * @param  WorkerOptions $options
-     * @return array
+     * @return void
      */
-    private function daemonPop($connectionName, $queue = null, WorkerOptions $options)
+    public function runNextJob($connectionName, $queue, WorkerOptions $options)
     {
         $connection = $this->manager->connection($connectionName);
 
@@ -161,14 +161,12 @@ use Throwable;
         // then immediately return back out. If there is no job on the queue
         // we will "sleep" the worker for the specified number of seconds.
         if (!is_null($job)) {
-            return $this->process(
+            $this->process(
                 $this->manager->getName($connectionName), $job, $options
             );
         }
 
         $this->sleep($options->sleep);
-
-        return ['job' => null, 'failed' => false];
     }
 
     /**
