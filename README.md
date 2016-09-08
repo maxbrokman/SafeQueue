@@ -16,9 +16,10 @@ A Laravel Queue worker that's safe for use with Laravel Doctrine
 
 #### Compatibility
 
-Version | Supported Laravel Versions
-0.1.* | 5.1, 5.2
-0.2.* | 5.3
+Version | Supported Laravel Versions 
+------- | -------------------------- 
+0.1.* | 5.1, 5.2 
+0.2.* | 5.3 
 
 #### How it Works
 
