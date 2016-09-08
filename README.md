@@ -1,8 +1,8 @@
 ## SafeQueue
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg?style=flat-square)](https://packagist.org/packages/maxbrokman/safe-queue)
-[![Build Status](https://img.shields.io/travis/maxbrokman/SafeQueue.svg?maxAge=2592000?style=flat-square)](https://travis-ci.org/maxbrokman/SafeQueue)
-[![Test Coverage](https://img.shields.io/coveralls/maxbrokman/SafeQueue.svg?maxAge=2592000?style=flat-square)](https://coveralls.io/github/maxbrokman/SafeQueue)
+[![Build Status](https://img.shields.io/travis/maxbrokman/SafeQueue.svg?maxAge=2592000&style=flat-square)](https://travis-ci.org/maxbrokman/SafeQueue)
+[![Test Coverage](https://img.shields.io/coveralls/maxbrokman/SafeQueue.svg?maxAge=2592000&style=flat-square)](https://coveralls.io/github/maxbrokman/SafeQueue)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
@@ -13,6 +13,12 @@ A Laravel Queue worker that's safe for use with Laravel Doctrine
 - [x] You use Laravel Doctrine
 - [x] Devops say the CPU usage of `queue:listen` is unacceptable
 - [x] You want to do `php artisan queue:work --daemon` without hitting cascading `EntityManager is closed` exceptions
+
+#### Compatibility
+
+Version | Supported Laravel Versions
+0.1.* | 5.1, 5.2
+0.2.* | 5.3
 
 #### How it Works
 
@@ -44,7 +50,9 @@ All options are identical to Laravel's own `queue:work` method.
 
 #### Contributing
 
-PRs welcome.
+PRs welcome. Please send PRs to the relevant branch (`0.1, 0.2`) depending on which version of Laravel you are targeting.
+
+Run tests and style fixer.
 
 ```
 vendor/bin/php-cs-fixer fix
