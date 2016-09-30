@@ -7,6 +7,16 @@
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
 
+## This package is Abandoned
+
+Laravel since at least `5.3.15` has effectively removed the option to run a daemonised queue worker. While the code 
+still exists it is deprecated and will be removed in the future.
+
+It appears this decision is due to numerous issues with long running php processes, not limited just to those 
+encountered by doctrine being forced to work with shared state.
+
+**This package is tested up to Laravel `5.3.9` and will not work on later releases.**
+
 #### When to use SafeQueue
 
 - [x] You use Laravel 5
