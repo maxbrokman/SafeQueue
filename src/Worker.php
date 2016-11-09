@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManager;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
@@ -63,8 +64,10 @@ use Throwable;
         $lastRestart = $this->getTimestampOfLastQueueRestart();
 
         while (true) {
+            $this->registerTimeoutHandler($options);
+
             if ($this->daemonShouldRun()) {
-                $canContinue = $this->runNextJobForDaemon(
+                $canContinue = $this->runNextJob(
                     $connectionName, $queue, $options
                 );
 
@@ -88,22 +91,21 @@ use Throwable;
      */
     public function stop()
     {
+        $this->events->fire(new WorkerStopping);
+
         $this->stopper->stop();
     }
 
     /**
-     * The parent class implementation of this method just carries on in case of error, but this
-     * could potentially leave the entity manager in a bad state.
-     *
-     * We also clear the entity manager before working a job for good measure, this will help us better
-     * simulate a single request model.
+     * We clear the entity manager, assert that it's open and also assert that
+     * the database has an open connection before running each job.
      *
      * @param  string                          $connectionName
      * @param  string                          $queue
      * @param  \Illuminate\Queue\WorkerOptions $options
      * @return bool
      */
-    protected function runNextJobForDaemon($connectionName, $queue, WorkerOptions $options)
+    public function runNextJob($connectionName, $queue, WorkerOptions $options)
     {
         $this->entityManager->clear();
 
@@ -120,7 +122,21 @@ use Throwable;
         $this->assertGoodDatabaseConnection();
 
         try {
-            parent::runNextJobForDaemon($connectionName, $queue, $options);
+            $job = $this->getNextJob(
+                $this->manager->connection($connectionName), $queue
+            );
+
+            // If we're able to pull a job off of the stack, we will process it and then return
+            // from this method. If there is no job on the queue, we will "sleep" the worker
+            // for the specified number of seconds, then keep processing jobs after sleep.
+            if ($job) {
+                $this->process(
+                    $connectionName, $job, $options
+                );
+
+                return true;
+            }
+
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
@@ -139,34 +155,9 @@ use Throwable;
             }
         }
 
-        return true;
-    }
-
-    /**
-     * We also have to override this method, because Laravel swallows exceptions down here as well (presumably
-     * because this is shared between work and daemon)
-     *
-     * @param  string        $connectionName
-     * @param  string        $queue
-     * @param  WorkerOptions $options
-     * @return void
-     */
-    public function runNextJob($connectionName, $queue, WorkerOptions $options)
-    {
-        $connection = $this->manager->connection($connectionName);
-
-        $job = $this->getNextJob($connection, $queue);
-
-        // If we're able to pull a job off of the stack, we will process it and
-        // then immediately return back out. If there is no job on the queue
-        // we will "sleep" the worker for the specified number of seconds.
-        if (!is_null($job)) {
-            $this->process(
-                $this->manager->getName($connectionName), $job, $options
-            );
-        }
-
         $this->sleep($options->sleep);
+
+        return true;
     }
 
     /**

@@ -9,7 +9,9 @@ use MaxBrokman\SafeQueue\Worker;
 class WorkCommand extends IlluminateWorkCommand
 {
     /**
-     * The console command name
+     * The console command name. This is now used to rename the laravel
+     * command. It's also used in the tests to ensure the command
+     * is renamed properly.
      *
      * @var string
      */
@@ -28,6 +30,13 @@ class WorkCommand extends IlluminateWorkCommand
      */
     public function __construct(Worker $worker)
     {
+        $this->renameCommandInSignature();
+
         parent::__construct($worker);
+    }
+
+    public function renameCommandInSignature()
+    {
+        $this->signature = str_replace('queue:work', $this->name, $this->signature);
     }
 }
