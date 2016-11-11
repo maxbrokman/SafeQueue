@@ -18,6 +18,14 @@ class DoctrineQueueProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->publishes([
+            __DIR__ . '/../config/safequeue.php' => config_path('safequeue.php'),
+        ], 'safequeue');
+
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/safequeue.php', 'safequeue'
+        );
+
         $this->registerWorker();
     }
 
@@ -40,7 +48,10 @@ class DoctrineQueueProvider extends ServiceProvider
     protected function registerWorkCommand()
     {
         $this->app->singleton('command.safeQueue.work', function ($app) {
-            return new WorkCommand($app['safeQueue.worker']);
+            return new WorkCommand(
+                $app['safeQueue.worker'],
+                $app['config']->get('safequeue')
+            );
         });
 
         $this->commands('command.safeQueue.work');
