@@ -11,6 +11,8 @@ use MaxBrokman\SafeQueue\Console\WorkCommand;
  */
 class DoctrineQueueProvider extends ServiceProvider
 {
+    protected $defer = true;
+
     /**
      * Register the service provider.
      *
@@ -27,6 +29,11 @@ class DoctrineQueueProvider extends ServiceProvider
         );
 
         $this->registerWorker();
+    }
+
+    public function boot()
+    {
+        $this->commands('command.safeQueue.work');
     }
 
     /**
@@ -54,6 +61,19 @@ class DoctrineQueueProvider extends ServiceProvider
             );
         });
 
-        $this->commands('command.safeQueue.work');
+        //$this->commands('command.safeQueue.work');
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [
+            'safeQueue.worker',
+            'command.safeQueue.work'
+        ];
     }
 }
