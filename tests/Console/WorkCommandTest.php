@@ -21,42 +21,91 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     private $command;
 
     /**
-     * @var ReflectionClass
-     */
-    private $reflectedCommand;
-
-    /**
      * @var string
      */
-    private $intendedCommandName;
+    private $defaultCommandName;
+
+    /**
+     * @var array
+     */
+    private $testNewCommandNames;
+
+    /**
+     * @var array
+     */
+    private $configStub;
 
     protected function setUp()
     {
         $this->worker = m::mock(Worker::class);
-        $this->command = new WorkCommand($this->worker);
-        $this->intendedCommandName = 'doctrine:queue:work';
-
-        // Use reflection to peek at the worker
-        $this->reflectedCommand = new ReflectionClass(get_class($this->command));
+        $this->defaultCommandName = 'doctrine:queue:work';
+        $this->configStub = ['command_name' => $this->defaultCommandName];
+        $this->command = new WorkCommand($this->worker, $this->configStub);
+        $this->testNewCommandNames = [
+            'queue:work',
+            'custom-queue:work',
+            'doctrine-queue-work',
+            'doctrine123-queue-work',
+        ];
     }
 
     public function testHasCorrectWorker()
     {
-        $reflectionProperty = $this->reflectedCommand->getProperty('worker');
-        $reflectionProperty->setAccessible(true);
-
-        $worker = $reflectionProperty->getValue($this->command);
+        $worker = $this->getPropertyViaReflection('worker');
 
         $this->assertSame($this->worker, $worker);
     }
 
-    public function testCommandNameIsCorrect()
+    /**
+     * @param $propertyName
+     * @return mixed
+     */
+    private function getPropertyViaReflection($propertyName)
     {
-        $reflectionProperty = $this->reflectedCommand->getProperty('signature');
+        // Use reflection to peek at the worker
+        $reflectedCommand = new ReflectionClass(get_class($this->command));
+        $reflectionProperty = $reflectedCommand->getProperty($propertyName);
         $reflectionProperty->setAccessible(true);
 
-        $signature = $reflectionProperty->getValue($this->command);
+        return $reflectionProperty->getValue($this->command);
+    }
 
-        $this->assertContains($this->intendedCommandName, $signature);
+    public function testCommandNameIsCorrectAsDefault()
+    {
+        $signature = $this->getPropertyViaReflection('signature');
+
+        $this->assertEquals($this->defaultCommandName, $this->getCommandNameFromSignature($signature));
+    }
+
+    public function testCommandNameCanBeConfigured()
+    {
+        foreach($this->testNewCommandNames as $newCommandName) {
+
+            $this->command = new WorkCommand($this->worker, [
+                'command_name' => $newCommandName
+            ]);
+
+            $signature = $this->getPropertyViaReflection('signature');
+
+            $this->assertEquals($newCommandName, $this->getCommandNameFromSignature($signature));
+        }
+    }
+
+    public function testCommandNameCanConfiguredToLaravelDefaultBySettingConfigValueToFalse()
+    {
+        $this->command = new WorkCommand($this->worker, [
+            'command_name' => false
+        ]);
+
+        $signature = $this->getPropertyViaReflection('signature');
+
+        $this->assertEquals('queue:work', $this->getCommandNameFromSignature($signature));
+    }
+
+    private function getCommandNameFromSignature($signature)
+    {
+        preg_match(WorkCommand::SIGNATURE_REGEX_PATTERN, $signature, $matches);
+
+        return $matches[1];
     }
 }
