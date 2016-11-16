@@ -26,9 +26,9 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     private $defaultCommandName;
 
     /**
-     * @var string
+     * @var array
      */
-    private $testNewCommandName;
+    private $testNewCommandNames;
 
     /**
      * @var array
@@ -38,10 +38,15 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->worker = m::mock(Worker::class);
-        $this->configStub = ['command_name' => 'doctrine:queue:work'];
-        $this->command = new WorkCommand($this->worker, $this->configStub);
         $this->defaultCommandName = 'doctrine:queue:work';
-        $this->testNewCommandName = 'queue:work';
+        $this->configStub = ['command_name' => $this->defaultCommandName];
+        $this->command = new WorkCommand($this->worker, $this->configStub);
+        $this->testNewCommandNames = [
+            'queue:work',
+            'custom-queue:work',
+            'doctrine-queue-work',
+            'doctrine123-queue-work',
+        ];
     }
 
     public function testHasCorrectWorker()
@@ -74,13 +79,16 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     public function testCommandNameCanBeConfigured()
     {
-        $this->command = new WorkCommand($this->worker, [
-            'command_name' => $this->testNewCommandName
-        ]);
+        foreach($this->testNewCommandNames as $newCommandName) {
 
-        $signature = $this->getPropertyViaReflection('signature');
+            $this->command = new WorkCommand($this->worker, [
+                'command_name' => $newCommandName
+            ]);
 
-        $this->assertEquals($this->testNewCommandName, $this->getCommandNameFromSignature($signature));
+            $signature = $this->getPropertyViaReflection('signature');
+
+            $this->assertEquals($newCommandName, $this->getCommandNameFromSignature($signature));
+        }
     }
 
     public function testCommandNameCanConfiguredToLaravelDefaultBySettingConfigValueToFalse()
