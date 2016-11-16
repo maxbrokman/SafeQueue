@@ -60,8 +60,6 @@ class DoctrineQueueProvider extends ServiceProvider
                 $app['config']->get('safequeue')
             );
         });
-
-        //$this->commands('command.safeQueue.work');
     }
 
     /**

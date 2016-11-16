@@ -96,7 +96,7 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     private function getCommandNameFromSignature($signature)
     {
-        preg_match('/([\w\:]+)(?=\s|\{)/i', $signature, $matches);
+        preg_match(WorkCommand::SIGNATURE_REGEX_PATTERN, $signature, $matches);
 
         return $matches[1];
     }
