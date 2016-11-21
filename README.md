@@ -32,7 +32,7 @@ before working each job.
 Install using composer
 
 ```
-composer require maxbrokman/safe-queue
+composer require "maxbrokman/safe-queue=0.1.*"
 ```
 
 Once you've got the codez add the following to your service providers in `app.php`
