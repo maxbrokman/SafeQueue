@@ -66,7 +66,7 @@ use Throwable;
         while (true) {
             $this->registerTimeoutHandler($options);
 
-            if ($this->daemonShouldRun()) {
+            if ($this->daemonShouldRun($options)) {
                 $canContinue = $this->runNextJob(
                     $connectionName, $queue, $options
                 );
