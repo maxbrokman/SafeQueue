@@ -20,9 +20,11 @@ class DoctrineQueueProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->publishes([
-            __DIR__ . '/../config/safequeue.php' => config_path('safequeue.php'),
-        ], 'safequeue');
+        if (!$this->isLumen()) {
+            $this->publishes([
+                __DIR__ . '/../config/safequeue.php' => config_path('safequeue.php'),
+            ], 'safequeue');
+        }
 
         $this->mergeConfigFrom(
             __DIR__ . '/../config/safequeue.php', 'safequeue'
@@ -73,5 +75,13 @@ class DoctrineQueueProvider extends ServiceProvider
             'safeQueue.worker',
             'command.safeQueue.work'
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isLumen()
+    {
+        return str_contains($this->app->version(), 'Lumen');
     }
 }
