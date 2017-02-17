@@ -23,9 +23,9 @@ use Throwable;
     /**
      * Worker constructor.
      *
-     * @param QueueManager $manager
-     * @param Dispatcher $events
-     * @param EntityManager $entityManager
+     * @param QueueManager     $manager
+     * @param Dispatcher       $events
+     * @param EntityManager    $entityManager
      * @param ExceptionHandler $exceptions
      */
     public function __construct(
@@ -46,8 +46,8 @@ use Throwable;
      * exceptions to be a result of our setup.
      *
      * @param \Illuminate\Contracts\Queue\Job $job
-     * @param string $connectionName
-     * @param WorkerOptions $options
+     * @param string                          $connectionName
+     * @param WorkerOptions                   $options
      */
     protected function runJob($job, $connectionName, WorkerOptions $options)
     {
@@ -68,7 +68,6 @@ use Throwable;
             $this->stop(1);
         }
     }
-
 
     /**
      * @throws EntityManagerClosedException

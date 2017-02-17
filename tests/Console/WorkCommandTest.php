@@ -37,10 +37,10 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->worker = m::mock(Worker::class);
-        $this->defaultCommandName = 'doctrine:queue:work';
-        $this->configStub = ['command_name' => $this->defaultCommandName];
-        $this->command = new WorkCommand($this->worker, $this->configStub);
+        $this->worker              = m::mock(Worker::class);
+        $this->defaultCommandName  = 'doctrine:queue:work';
+        $this->configStub          = ['command_name' => $this->defaultCommandName];
+        $this->command             = new WorkCommand($this->worker, $this->configStub);
         $this->testNewCommandNames = [
             'queue:work',
             'custom-queue:work',
@@ -63,7 +63,7 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     private function getPropertyViaReflection($propertyName)
     {
         // Use reflection to peek at the worker
-        $reflectedCommand = new ReflectionClass(get_class($this->command));
+        $reflectedCommand   = new ReflectionClass(get_class($this->command));
         $reflectionProperty = $reflectedCommand->getProperty($propertyName);
         $reflectionProperty->setAccessible(true);
 
@@ -79,8 +79,7 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     public function testCommandNameCanBeConfigured()
     {
-        foreach($this->testNewCommandNames as $newCommandName) {
-
+        foreach ($this->testNewCommandNames as $newCommandName) {
             $this->command = new WorkCommand($this->worker, [
                 'command_name' => $newCommandName
             ]);
