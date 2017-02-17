@@ -7,7 +7,6 @@ use Doctrine\ORM\EntityManager;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
@@ -15,17 +14,14 @@ use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-/*final*/ class Worker extends IlluminateWorker
+/*final*/
+
+class Worker extends IlluminateWorker
 {
     /**
      * @var EntityManager
      */
     private $entityManager;
-
-    /**
-     * @var Stopper
-     */
-    private $stopper;
 
     /**
      * Worker constructor.
@@ -34,7 +30,6 @@ use Throwable;
      * @param FailedJobProviderInterface $failer
      * @param Dispatcher                 $events
      * @param EntityManager              $entityManager
-     * @param Stopper                    $stopper
      * @param ExceptionHandler           $exceptions
      */
     public function __construct(
@@ -42,14 +37,12 @@ use Throwable;
         FailedJobProviderInterface $failer,
         Dispatcher $events,
         EntityManager $entityManager,
-        Stopper $stopper,
         ExceptionHandler $exceptions
     )
     {
         parent::__construct($manager, $events, $exceptions);
 
         $this->entityManager = $entityManager;
-        $this->stopper = $stopper;
     }
 
     /**
@@ -69,30 +62,19 @@ use Throwable;
             $this->assertEntityManagerOpen();
             $this->assertGoodDatabaseConnection();
 
-            $this->process($connectionName, $job, $options);
-
+            parent::runJob($job, $connectionName, $options);
         } catch (EntityManagerClosedException $e) {
-            if ($this->exceptions) {
-                $this->exceptions->report(new EntityManagerClosedException);
-            }
+            $this->exceptions->report($e);
 
-            $this->stop();
+            $this->stop(1);
         } catch (Exception $e) {
-            if ($this->exceptions) {
-                $this->exceptions->report($e);
-            }
+            $this->exceptions->report($e);
 
-            if ($e instanceof QueueMustStop) {
-                $this->stop();
-            }
+            $this->stop(1);
         } catch (Throwable $e) {
-            if ($this->exceptions) {
-                $this->exceptions->report(new FatalThrowableError($e));
-            }
+            $this->exceptions->report(new FatalThrowableError($e));
 
-            if ($e instanceof QueueMustStop) {
-                $this->stop();
-            }
+            $this->stop(1);
         }
     }
 
@@ -121,17 +103,5 @@ use Throwable;
             $connection->close();
             $connection->connect();
         }
-    }
-
-    /**
-     * Overridden to allow testing.
-     *
-     * @param int $status
-     */
-    public function stop($status = 0)
-    {
-        $this->events->fire(new WorkerStopping);
-
-        $this->stopper->stop($status);
     }
 }
