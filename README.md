@@ -1,8 +1,8 @@
 ## SafeQueue
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg)](https://packagist.org/packages/maxbrokman/safe-queue)
-[![Build Status](https://travis-ci.org/maxbrokman/SafeQueue.svg?branch=0.2)](https://travis-ci.org/maxbrokman/SafeQueue)
-[![Coverage Status](https://coveralls.io/repos/github/maxbrokman/SafeQueue/badge.svg?branch=0.2)](https://coveralls.io/github/maxbrokman/SafeQueue?branch=0.2)
+[![Build Status](https://travis-ci.org/maxbrokman/SafeQueue.svg?branch=0.3)](https://travis-ci.org/maxbrokman/SafeQueue)
+[![Coverage Status](https://coveralls.io/repos/github/maxbrokman/SafeQueue/badge.svg?branch=0.3)](https://coveralls.io/github/maxbrokman/SafeQueue?branch=0.2)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
@@ -20,6 +20,7 @@ Version | Supported Laravel Versions
 ------- | -------------------------- 
 0.1.* | 5.1, 5.2 
 0.2.* | ^5.3.16 
+0.3.* | ^5.4.9
 
 #### How it Works
 
@@ -76,7 +77,7 @@ All options are identical to Laravel's own `queue:work` method.
 
 #### Contributing
 
-PRs welcome. Please send PRs to the relevant branch (`0.1, 0.2`) depending on which version of Laravel you are targeting.
+PRs welcome. Please send PRs to the relevant branch (`0.1, 0.2, 0.3`) depending on which version of Laravel you are targeting.
 
 Run tests and style fixer.
 
