@@ -101,10 +101,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->queueManager->shouldReceive('connection')->andReturn($this->queue);
         $this->queueManager->shouldReceive('getName')->andReturn('test');
 
-        $popExpectation = $this->queue->shouldReceive('pop');
-
-        // Allows the expectation to return a difference job each time.
-        call_user_func_array([$popExpectation, 'andReturn'], $jobs);
+        $this->queue->shouldReceive('pop')->andReturn(...$jobs);
     }
 
     public function testExtendsLaravelWorker()
