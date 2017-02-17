@@ -53,8 +53,8 @@ use Throwable;
     {
         try {
             $this->assertEntityManagerOpen();
-            $this->assertGoodDatabaseConnection();
             $this->assertEntityManagerClear();
+            $this->assertGoodDatabaseConnection();
 
             parent::runJob($job, $connectionName, $options);
         } catch (EntityManagerClosedException $e) {
@@ -83,6 +83,14 @@ use Throwable;
     }
 
     /**
+     * To clear the em before doing any work.
+     */
+    private function assertEntityManagerClear()
+    {
+        $this->entityManager->clear();
+    }
+
+    /**
      * Some database systems close the connection after a period of time, in MySQL this is system variable
      * `wait_timeout`. Given the daemon is meant to run indefinitely we need to make sure we have an open
      * connection before working any job. Otherwise we would see `MySQL has gone away` type errors.
@@ -95,13 +103,5 @@ use Throwable;
             $connection->close();
             $connection->connect();
         }
-    }
-
-    /**
-     * To clear the em before doing any work.
-     */
-    private function assertEntityManagerClear()
-    {
-        $this->entityManager->clear();
     }
 }
