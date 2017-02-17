@@ -21,6 +21,7 @@ use Throwable;
      * @var EntityManager
      */
     private $entityManager;
+
     /**
      * @var Stopper
      */
@@ -28,6 +29,7 @@ use Throwable;
 
     /**
      * Worker constructor.
+     *
      * @param QueueManager               $manager
      * @param FailedJobProviderInterface $failer
      * @param Dispatcher                 $events
@@ -42,108 +44,46 @@ use Throwable;
         EntityManager $entityManager,
         Stopper $stopper,
         ExceptionHandler $exceptions
-    ) {
+    )
+    {
         parent::__construct($manager, $events, $exceptions);
 
         $this->entityManager = $entityManager;
-        $this->stopper       = $stopper;
-    }
-
-    /**
-     * Listen to the given queue and work jobs from it without re-booting the framework.
-     *
-     * This is a slight re-working of the parent implementation to aid testing.
-     *
-     * @param  string                          $connectionName
-     * @param  null                            $queue
-     * @param  \Illuminate\Queue\WorkerOptions $options
-     * @return void
-     */
-    public function daemon($connectionName, $queue, WorkerOptions $options)
-    {
-        $lastRestart = $this->getTimestampOfLastQueueRestart();
-
-        while (true) {
-            $this->registerTimeoutHandler($options);
-
-            if ($this->daemonShouldRun($options)) {
-                $canContinue = $this->runNextJob(
-                    $connectionName, $queue, $options
-                );
-
-                if ($canContinue === false) {
-                    break;
-                }
-            } else {
-                $this->sleep($options->sleep);
-            }
-
-            if ($this->memoryExceeded($options->memory) || $this->queueShouldRestart($lastRestart)) {
-                break;
-            }
-        }
-
-        $this->stop();
-    }
-
-    /**
-     * Overridden to allow testing.
-     */
-    public function stop()
-    {
-        $this->events->fire(new WorkerStopping);
-
-        $this->stopper->stop();
+        $this->stopper = $stopper;
     }
 
     /**
      * We clear the entity manager, assert that it's open and also assert that
-     * the database has an open connection before running each job.
+     * the database has an open connection before processing the current job.
      *
+     * @param  \Illuminate\Contracts\Queue\Job $job
      * @param  string                          $connectionName
-     * @param  string                          $queue
      * @param  \Illuminate\Queue\WorkerOptions $options
-     * @return bool
+     * @return void
      */
-    public function runNextJob($connectionName, $queue, WorkerOptions $options)
+    protected function runJob($job, $connectionName, WorkerOptions $options)
     {
         $this->entityManager->clear();
 
         try {
             $this->assertEntityManagerOpen();
+            $this->assertGoodDatabaseConnection();
+
+            $this->process($connectionName, $job, $options);
+
         } catch (EntityManagerClosedException $e) {
             if ($this->exceptions) {
                 $this->exceptions->report(new EntityManagerClosedException);
             }
 
-            return false;
-        }
-
-        $this->assertGoodDatabaseConnection();
-
-        try {
-            $job = $this->getNextJob(
-                $this->manager->connection($connectionName), $queue
-            );
-
-            // If we're able to pull a job off of the stack, we will process it and then return
-            // from this method. If there is no job on the queue, we will "sleep" the worker
-            // for the specified number of seconds, then keep processing jobs after sleep.
-            if ($job) {
-                $this->process(
-                    $connectionName, $job, $options
-                );
-
-                return true;
-            }
-
+            $this->stop();
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
             }
 
             if ($e instanceof QueueMustStop) {
-                return false;
+                $this->stop();
             }
         } catch (Throwable $e) {
             if ($this->exceptions) {
@@ -151,13 +91,9 @@ use Throwable;
             }
 
             if ($e instanceof QueueMustStop) {
-                return false;
+                $this->stop();
             }
         }
-
-        $this->sleep($options->sleep);
-
-        return true;
     }
 
     /**
@@ -185,5 +121,17 @@ use Throwable;
             $connection->close();
             $connection->connect();
         }
+    }
+
+    /**
+     * Overridden to allow testing.
+     *
+     * @param int $status
+     */
+    public function stop($status = 0)
+    {
+        $this->events->fire(new WorkerStopping);
+
+        $this->stopper->stop($status);
     }
 }
