@@ -1,7 +1,7 @@
 <?php
 
 
-namespace MaxBrokman\SafeQueue;
+namespace MaxBrokman\SafeQueue\Exceptions;
 
 use Exception;
 

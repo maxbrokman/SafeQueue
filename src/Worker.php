@@ -12,6 +12,7 @@ use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
+use MaxBrokman\SafeQueue\Exceptions\EntityManagerClosedException;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 

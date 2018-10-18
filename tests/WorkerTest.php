@@ -14,7 +14,7 @@ use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
-use MaxBrokman\SafeQueue\EntityManagerClosedException;
+use MaxBrokman\SafeQueue\Exceptions\EntityManagerClosedException;
 use MaxBrokman\SafeQueue\QueueMustStop;
 use MaxBrokman\SafeQueue\Stopper;
 use MaxBrokman\SafeQueue\Worker;
