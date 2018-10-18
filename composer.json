@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
+        "php": ">=7.1",
         "illuminate/queue": "^5.3.24",
         "laravel-doctrine/orm": "^1.0"
     },

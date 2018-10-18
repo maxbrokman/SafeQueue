@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 
 namespace MaxBrokman\SafeQueue;
 
@@ -13,6 +12,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
 use MaxBrokman\SafeQueue\Exceptions\EntityManagerClosedException;
+use MaxBrokman\SafeQueue\Exceptions\QueueFailureException;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
@@ -55,10 +55,11 @@ use Throwable;
      *
      * This is a slight re-working of the parent implementation to aid testing.
      *
-     * @param  string                          $connectionName
-     * @param  null                            $queue
+     * @param  string $connectionName
+     * @param  null $queue
      * @param  \Illuminate\Queue\WorkerOptions $options
      * @return void
+     * @throws Exception
      */
     public function daemon($connectionName, $queue, WorkerOptions $options)
     {
@@ -101,10 +102,11 @@ use Throwable;
      * We clear the entity manager, assert that it's open and also assert that
      * the database has an open connection before running each job.
      *
-     * @param  string                          $connectionName
-     * @param  string                          $queue
+     * @param  string $connectionName
+     * @param  string $queue
      * @param  \Illuminate\Queue\WorkerOptions $options
      * @return bool
+     * @throws Exception
      */
     public function runNextJob($connectionName, $queue, WorkerOptions $options)
     {
@@ -114,7 +116,7 @@ use Throwable;
             $this->assertEntityManagerOpen();
         } catch (EntityManagerClosedException $e) {
             if ($this->exceptions) {
-                $this->exceptions->report(new EntityManagerClosedException);
+                $this->exceptions->report($e);
             }
 
             return false;
@@ -123,9 +125,7 @@ use Throwable;
         $this->assertGoodDatabaseConnection();
 
         try {
-            $job = $this->getNextJob(
-                $this->manager->connection($connectionName), $queue
-            );
+            $job = $this->fetchNewJob($connectionName, $queue);
 
             // If we're able to pull a job off of the stack, we will process it and then return
             // from this method. If there is no job on the queue, we will "sleep" the worker
@@ -138,20 +138,12 @@ use Throwable;
                 return true;
             }
 
-        } catch (Exception $e) {
-            if ($this->exceptions) {
-                $this->exceptions->report($e);
-            }
-
-            if ($e instanceof QueueMustStop) {
-                return false;
-            }
-        } catch (Throwable $e) {
+        } catch (Exception | Throwable $e) {
             if ($this->exceptions) {
                 $this->exceptions->report(new FatalThrowableError($e));
             }
 
-            if ($e instanceof QueueMustStop) {
+            if ($e instanceof QueueMustStop || $e instanceof QueueFailure) {
                 return false;
             }
         }
@@ -185,6 +177,23 @@ use Throwable;
         if ($connection->ping() === false) {
             $connection->close();
             $connection->connect();
+        }
+    }
+
+    /**
+     * @param string $connectionName
+     * @param null $queue
+     * @return \Illuminate\Contracts\Queue\Job|null
+     * @throws QueueFailureException
+     */
+    private function fetchNewJob(string $connectionName, $queue): ?\Illuminate\Contracts\Queue\Job
+    {
+        try {
+            return $this->getNextJob(
+                $this->manager->connection($connectionName), $queue
+            );
+        } catch (Exception | Throwable $e) {
+            throw new QueueFailureException($e);
         }
     }
 }
