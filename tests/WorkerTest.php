@@ -125,14 +125,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         call_user_func_array([$popExpectation, 'andReturn'], $jobs);
     }
 
-    protected function prepareToRunJobFails($job)
+    protected function prepareToRunJobFails()
     {
-        if ($job instanceof Job) {
-            $jobs = [$job];
-        } else {
-            $jobs = $job;
-        }
-
         $this->queueManager->shouldReceive('isDownForMaintenance')->andReturn(false);
         $this->queueManager->shouldReceive('connection')->andReturn($this->queue);
         $this->queueManager->shouldReceive('getName')->andReturn('test');
@@ -193,8 +187,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     public function testLoops()
     {
         // Entity manager will report open and good connection
-        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(2);
-        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(2);
+        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(3);
+        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(3);
 
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
@@ -211,7 +205,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
-        $this->prepareToRunJob([$jobOne, $jobTwo]);
+        $this->prepareToRunJob([null, $jobOne, $jobTwo]);
 
         $this->worker->daemon('test', null, $this->options);
     }
@@ -246,7 +240,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
-        $this->prepareToRunJobFails([$job]);
+        $this->prepareToRunJobFails();
 
         $this->worker->daemon('test', null, $this->options);
     }
