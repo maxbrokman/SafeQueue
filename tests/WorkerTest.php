@@ -14,11 +14,13 @@ use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
-use MaxBrokman\SafeQueue\EntityManagerClosedException;
+use MaxBrokman\SafeQueue\Exceptions\EntityManagerClosedException;
+use MaxBrokman\SafeQueue\Exceptions\QueueFailureException;
 use MaxBrokman\SafeQueue\QueueMustStop;
 use MaxBrokman\SafeQueue\Stopper;
 use MaxBrokman\SafeQueue\Worker;
 use Mockery as m;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class WorkerTest extends \PHPUnit_Framework_TestCase
 {
@@ -123,6 +125,15 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         call_user_func_array([$popExpectation, 'andReturn'], $jobs);
     }
 
+    protected function prepareToRunJobFails()
+    {
+        $this->queueManager->shouldReceive('isDownForMaintenance')->andReturn(false);
+        $this->queueManager->shouldReceive('connection')->andReturn($this->queue);
+        $this->queueManager->shouldReceive('getName')->andReturn('test');
+
+        $this->queue->shouldReceive('pop')->andThrow(new QueueFailureException(new BadThingHappened()));
+    }
+
     public function testExtendsLaravelWorker()
     {
         $this->assertInstanceOf(IlluminateWorker::class, $this->worker);
@@ -160,7 +171,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
         // We must log this fact
-        $this->exceptions->shouldReceive('report')->with(m::type(BadThingHappened::class))->once();
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
         // Make a job
         $job = m::mock(Job::class);
@@ -176,8 +187,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     public function testLoops()
     {
         // Entity manager will report open and good connection
-        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(2);
-        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(2);
+        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(3);
+        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(3);
 
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
@@ -192,9 +203,9 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $jobTwo->shouldReceive('fire')->once()->andThrow(new BadThingHappened());
         $jobTwo->shouldIgnoreMissing();
 
-        $this->exceptions->shouldReceive('report')->with(m::type(BadThingHappened::class))->once();
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
-        $this->prepareToRunJob([$jobOne, $jobTwo]);
+        $this->prepareToRunJob([null, $jobOne, $jobTwo]);
 
         $this->worker->daemon('test', null, $this->options);
     }
@@ -211,6 +222,25 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
+
+        $this->worker->daemon('test', null, $this->options);
+    }
+
+    public function testQueueFailure()
+    {
+        // Entity manager will report open and good connection
+        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(1);
+        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(1);
+
+        // We must stop
+        $this->stopper->shouldReceive('stop')->once();
+
+        // Make a job
+        $job = m::mock(Job::class);
+
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
+
+        $this->prepareToRunJobFails();
 
         $this->worker->daemon('test', null, $this->options);
     }
