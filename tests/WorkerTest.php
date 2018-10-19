@@ -15,6 +15,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
 use MaxBrokman\SafeQueue\Exceptions\EntityManagerClosedException;
+use MaxBrokman\SafeQueue\Exceptions\QueueFailureException;
 use MaxBrokman\SafeQueue\QueueMustStop;
 use MaxBrokman\SafeQueue\Stopper;
 use MaxBrokman\SafeQueue\Worker;
@@ -124,6 +125,21 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         call_user_func_array([$popExpectation, 'andReturn'], $jobs);
     }
 
+    protected function prepareToRunJobFails($job)
+    {
+        if ($job instanceof Job) {
+            $jobs = [$job];
+        } else {
+            $jobs = $job;
+        }
+
+        $this->queueManager->shouldReceive('isDownForMaintenance')->andReturn(false);
+        $this->queueManager->shouldReceive('connection')->andReturn($this->queue);
+        $this->queueManager->shouldReceive('getName')->andReturn('test');
+
+        $this->queue->shouldReceive('pop')->andThrow(new QueueFailureException(new BadThingHappened()));
+    }
+
     public function testExtendsLaravelWorker()
     {
         $this->assertInstanceOf(IlluminateWorker::class, $this->worker);
@@ -212,6 +228,25 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
+
+        $this->worker->daemon('test', null, $this->options);
+    }
+
+    public function testQueueFailure()
+    {
+        // Entity manager will report open and good connection
+        $this->entityManager->shouldReceive('isOpen')->andReturn(true)->times(1);
+        $this->dbConnection->shouldReceive('ping')->andReturn(true)->times(1);
+
+        // We must stop
+        $this->stopper->shouldReceive('stop')->once();
+
+        // Make a job
+        $job = m::mock(Job::class);
+
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
+
+        $this->prepareToRunJobFails([$job]);
 
         $this->worker->daemon('test', null, $this->options);
     }
