@@ -19,6 +19,7 @@ use MaxBrokman\SafeQueue\QueueMustStop;
 use MaxBrokman\SafeQueue\Stopper;
 use MaxBrokman\SafeQueue\Worker;
 use Mockery as m;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class WorkerTest extends \PHPUnit_Framework_TestCase
 {
@@ -160,7 +161,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         // We must stop
         $this->stopper->shouldReceive('stop')->once();
         // We must log this fact
-        $this->exceptions->shouldReceive('report')->with(m::type(BadThingHappened::class))->once();
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
         // Make a job
         $job = m::mock(Job::class);
@@ -192,7 +193,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $jobTwo->shouldReceive('fire')->once()->andThrow(new BadThingHappened());
         $jobTwo->shouldIgnoreMissing();
 
-        $this->exceptions->shouldReceive('report')->with(m::type(BadThingHappened::class))->once();
+        $this->exceptions->shouldReceive('report')->with(m::type(FatalThrowableError::class))->once();
 
         $this->prepareToRunJob([$jobOne, $jobTwo]);
 
