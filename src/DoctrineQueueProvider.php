@@ -47,7 +47,7 @@ class DoctrineQueueProvider extends ServiceProvider
 
         $this->app->singleton('safeQueue.worker', function ($app) {
             return new Worker($app['queue'], $app['events'],
-                $app['em'], $app['Illuminate\Contracts\Debug\ExceptionHandler']);
+                $app['Doctrine\Common\Persistence\ManagerRegistry'], $app['Illuminate\Contracts\Debug\ExceptionHandler']);
         });
     }
 

@@ -3,8 +3,10 @@
 
 namespace tests\MaxBrokman\SafeQueue;
 
+use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler as Handler;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -54,6 +56,11 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     private $exceptions;
 
     /**
+     * @var ManagerRegistry|m\MockInterface
+     */
+    private $managerRegistry;
+
+    /**
      * @var Worker
      */
     private $worker;
@@ -72,8 +79,9 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->dbConnection  = m::mock(Connection::class);
         $this->cache         = m::mock(Repository::class);
         $this->exceptions    = m::mock(Handler::class);
+        $this->managerRegistry = m::mock(ManagerRegistry::class);
 
-        $this->worker = new Worker($this->queueManager, $this->dispatcher, $this->entityManager, $this->exceptions);
+        $this->worker = new Worker($this->queueManager, $this->dispatcher, $this->managerRegistry, $this->exceptions);
 
         $this->options = new WorkerOptions(0, 128, 0, 0, 0);
 
@@ -127,6 +135,37 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->dbConnection->shouldReceive('ping')->once()->andReturn(false);
         $this->dbConnection->shouldReceive('close')->once();
         $this->dbConnection->shouldReceive('connect')->once();
+
+        $this->managerRegistry->shouldReceive('getManagers')->andReturn(array($this->entityManager));
+
+        $this->worker->runNextJob('connection', 'queue', $this->options);
+    }
+
+    public function testMultipleEntityManagers() {
+        $job = m::mock(Job::class);
+        $job->shouldReceive('fire')->once();
+        $job->shouldIgnoreMissing();
+
+        $this->prepareToRunJob($job);
+
+        $this->entityManager->shouldReceive('isOpen')->once()->andReturn(true);
+        $this->entityManager->shouldReceive('clear')->once();
+
+        $this->dbConnection->shouldReceive('ping')->once()->andReturn(false);
+        $this->dbConnection->shouldReceive('close')->once();
+        $this->dbConnection->shouldReceive('connect')->once();
+
+        $secondConnection = m::mock(Connection::class);
+        $secondConnection->shouldReceive('ping')->once()->andReturn(false);
+        $secondConnection->shouldReceive('close')->once();
+        $secondConnection->shouldReceive('connect')->once();
+
+        $secondManager = m::mock(EntityManagerInterface::class);
+        $secondManager->shouldReceive('getConnection')->andReturn($secondConnection);
+        $secondManager->shouldReceive('isOpen')->once()->andReturn(true);
+        $secondManager->shouldReceive('clear')->once();
+
+        $this->managerRegistry->shouldReceive('getManagers')->andReturn(array($this->entityManager, $secondManager));
 
         $this->worker->runNextJob('connection', 'queue', $this->options);
     }
