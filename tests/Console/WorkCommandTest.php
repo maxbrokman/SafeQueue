@@ -3,6 +3,7 @@
 
 namespace tests\Digbang\SafeQueue\Console;
 
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Digbang\SafeQueue\Console\WorkCommand;
 use Digbang\SafeQueue\Worker;
 use Mockery as m;
@@ -14,6 +15,11 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
      * @var Worker|m\MockInterface
      */
     private $worker;
+
+    /**
+     * @var Cache|m\MockInterface
+     */
+    private $cache;
 
     /**
      * @var WorkCommand
@@ -38,9 +44,14 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->worker              = m::mock(Worker::class);
+        $this->cache               = m::mock(Cache::class);
         $this->defaultCommandName  = 'doctrine:queue:work';
         $this->configStub          = ['command_name' => $this->defaultCommandName];
-        $this->command             = new WorkCommand($this->worker, $this->configStub);
+        $this->command             = new WorkCommand(
+            $this->worker,
+            $this->cache,
+            $this->configStub
+        );
         $this->testNewCommandNames = [
             'queue:work',
             'custom-queue:work',
@@ -80,7 +91,7 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     public function testCommandNameCanBeConfigured()
     {
         foreach ($this->testNewCommandNames as $newCommandName) {
-            $this->command = new WorkCommand($this->worker, [
+            $this->command = new WorkCommand($this->worker, $this->cache, [
                 'command_name' => $newCommandName
             ]);
 
@@ -92,7 +103,7 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     public function testCommandNameCanConfiguredToLaravelDefaultBySettingConfigValueToFalse()
     {
-        $this->command = new WorkCommand($this->worker, [
+        $this->command = new WorkCommand($this->worker, $this->cache, [
             'command_name' => false
         ]);
 

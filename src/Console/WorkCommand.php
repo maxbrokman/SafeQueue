@@ -2,6 +2,7 @@
 
 namespace Digbang\SafeQueue\Console;
 
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Queue\Console\WorkCommand as IlluminateWorkCommand;
 use Digbang\SafeQueue\Worker;
 
@@ -22,11 +23,11 @@ class WorkCommand extends IlluminateWorkCommand
      * @param Worker $worker
      * @param array  $config
      */
-    public function __construct(Worker $worker, $config)
+    public function __construct(Worker $worker, Cache $cache, $config)
     {
         $this->renameCommandInSignature($config['command_name']);
 
-        parent::__construct($worker);
+        parent::__construct($worker, $cache);
     }
 
     public function renameCommandInSignature($commandName)
