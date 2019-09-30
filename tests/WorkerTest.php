@@ -5,7 +5,6 @@ namespace tests\MaxBrokman\SafeQueue;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler as Handler;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -53,11 +52,6 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
      * @var Handler|m\MockInterface
      */
     private $exceptions;
-
-    /**
-     * @var Application
-     */
-    private $app;
     
     /**
      * @var Worker
@@ -78,9 +72,11 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->dbConnection  = m::mock(Connection::class);
         $this->cache         = m::mock(Repository::class);
         $this->exceptions    = m::mock(Handler::class);
-        $this->app           = m::mock(Application::class);
+        $isDownForMaintenance= function () {
+            return false;
+        };
 
-        $this->worker = new Worker($this->queueManager, $this->dispatcher, $this->entityManager, $this->exceptions, $this->app);
+        $this->worker = new Worker($this->queueManager, $this->dispatcher, $this->entityManager, $this->exceptions, $isDownForMaintenance);
 
         $this->options = new WorkerOptions(0, 128, 0, 0, 0);
 

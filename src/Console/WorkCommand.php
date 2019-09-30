@@ -22,6 +22,7 @@ class WorkCommand extends IlluminateWorkCommand
      * WorkCommand constructor.
      *
      * @param Worker $worker
+     * @param Cache  $cache
      * @param array  $config
      */
     public function __construct(Worker $worker, Cache $cache, $config)
