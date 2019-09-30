@@ -1,7 +1,7 @@
 <?php
 
 
-namespace MaxBrokman\SafeQueue;
+namespace Zmaglica\SafeQueue;
 
 use Exception;
 

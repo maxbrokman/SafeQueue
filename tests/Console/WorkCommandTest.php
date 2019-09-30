@@ -1,10 +1,10 @@
 <?php
 
 
-namespace tests\MaxBrokman\SafeQueue\Console;
+namespace tests\Zmaglica\SafeQueue\Console;
 
-use MaxBrokman\SafeQueue\Console\WorkCommand;
-use MaxBrokman\SafeQueue\Worker;
+use Zmaglica\SafeQueue\Console\WorkCommand;
+use Zmaglica\SafeQueue\Worker;
 use Mockery as m;
 use ReflectionClass;
 

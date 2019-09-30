@@ -1,11 +1,11 @@
 ## SafeQueue
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg)](https://packagist.org/packages/maxbrokman/safe-queue)
-[![Build Status](https://travis-ci.org/maxbrokman/SafeQueue.svg?branch=0.3)](https://travis-ci.org/maxbrokman/SafeQueue)
-[![Coverage Status](https://coveralls.io/repos/github/maxbrokman/SafeQueue/badge.svg?branch=0.3)](https://coveralls.io/github/maxbrokman/SafeQueue?branch=0.2)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/Zmaglica/safe-queue.svg)](https://packagist.org/packages/Zmaglica/safe-queue)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
+
+Forked from https://github.com/maxbrokman/SafeQueue
 
 #### When to use SafeQueue
 
@@ -33,13 +33,13 @@ before working each job.
 Install using composer
 
 ```
-composer require maxbrokman/safe-queue
+composer require zmaglica/safe-queue
 ```
 
 Once you've got the codez add the following to your service providers in `app.php`
 
 ```
-MaxBrokman\SafeQueue\DoctrineQueueProvider::class
+Zmaglica\SafeQueue\DoctrineQueueProvider::class
 ```
 ##### Lumen
 
