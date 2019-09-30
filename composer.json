@@ -1,6 +1,6 @@
 {
     "name": "maxbrokman/safe-queue",
-    "description": "A Laravel Doctrine friendly daemonising queue worker for Laravel 5",
+    "description": "A Laravel Doctrine friendly daemonising queue worker for Laravel 6",
     "license": "MIT",
     "authors": [
         {
@@ -10,14 +10,14 @@
     ],
     "require": {
         "php": ">=5.6",
-        "illuminate/queue": "^5.4.9",
+        "illuminate/queue": "^6.0",
         "laravel-doctrine/orm": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.3",
         "mockery/mockery": "^0.9.4",
-        "fabpot/php-cs-fixer": "^1.11",
-        "satooshi/php-coveralls": "^1.0"
+        "satooshi/php-coveralls": "^1.0",
+        "friendsofphp/php-cs-fixer": "^2.15"
     },
     "autoload": {
         "psr-4": {

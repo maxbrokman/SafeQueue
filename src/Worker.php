@@ -5,8 +5,10 @@ namespace MaxBrokman\SafeQueue;
 
 use Doctrine\ORM\EntityManager;
 use Exception;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
@@ -32,9 +34,12 @@ use Throwable;
         QueueManager $manager,
         Dispatcher $events,
         EntityManager $entityManager,
-        ExceptionHandler $exceptions
+        ExceptionHandler $exceptions,
+        Application $app
     ) {
-        parent::__construct($manager, $events, $exceptions);
+        parent::__construct($manager, $events, $exceptions, function () use ($app) {
+            return $app->isDownForMaintenance();
+        });
 
         $this->entityManager = $entityManager;
     }
