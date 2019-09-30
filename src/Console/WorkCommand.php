@@ -1,10 +1,10 @@
 <?php
 
 
-namespace MaxBrokman\SafeQueue\Console;
+namespace Zmaglica\SafeQueue\Console;
 
 use Illuminate\Queue\Console\WorkCommand as IlluminateWorkCommand;
-use MaxBrokman\SafeQueue\Worker;
+use Zmaglica\SafeQueue\Worker;
 
 class WorkCommand extends IlluminateWorkCommand
 {

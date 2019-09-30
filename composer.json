@@ -1,15 +1,15 @@
 {
-    "name": "maxbrokman/safe-queue",
+    "name": "zmaglica/safe-queue",
     "description": "A Laravel Doctrine friendly daemonising queue worker for Laravel 5",
     "license": "MIT",
     "authors": [
         {
-            "name": "Max Brokman",
-            "email": "max.brokman@vice.com"
+            "name": "Zvonimir Maglica",
+            "email": "zvonimirmaglica4@gmail.com"
         }
     ],
     "require": {
-        "php": ">=5.6",
+        "php": ">=7.1",
         "illuminate/queue": "^5.4.9",
         "laravel-doctrine/orm": "^1.0"
     },
@@ -21,12 +21,12 @@
     },
     "autoload": {
         "psr-4": {
-            "MaxBrokman\\SafeQueue\\": "src/"
+            "Zmaglica\\SafeQueue\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "test\\MaxBrokman\\SafeQueue\\": "tests/"
+            "test\\Zmaglica\\SafeQueue\\": "tests/"
         }
     }
 }
