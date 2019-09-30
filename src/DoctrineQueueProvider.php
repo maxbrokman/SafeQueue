@@ -5,6 +5,7 @@ namespace Digbang\SafeQueue;
 use Illuminate\Support\ServiceProvider;
 use Digbang\SafeQueue\Console\WorkCommand;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 
 /**
  * @codeCoverageIgnore
@@ -47,11 +48,16 @@ class DoctrineQueueProvider extends ServiceProvider
         $this->registerWorkCommand();
 
         $this->app->singleton('safeQueue.worker', function ($app) {
+            $isDownForMaintenance = function () {
+                return $app->isDownForMaintenance();
+            };
+            
             return new Worker(
                 $app['queue'],
                 $app['events'],
                 $app['em'],
-                $app['Illuminate\Contracts\Debug\ExceptionHandler']
+                $app[ExceptionHandler::class],
+                $isDownForMaintenance
             );
         });
     }
