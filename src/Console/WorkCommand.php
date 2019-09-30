@@ -41,7 +41,10 @@ class WorkCommand extends IlluminateWorkCommand
              * command name from config, and the result is a renamed signature.
              */
             $this->signature = preg_replace(
-                self::SIGNATURE_REGEX_PATTERN, $commandName,  $this->signature, 1
+                self::SIGNATURE_REGEX_PATTERN,
+                $commandName,
+                $this->signature,
+                1
             );
         }
     }

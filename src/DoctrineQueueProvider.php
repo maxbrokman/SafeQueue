@@ -27,7 +27,8 @@ class DoctrineQueueProvider extends ServiceProvider
         }
 
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/safequeue.php', 'safequeue'
+            __DIR__ . '/../config/safequeue.php',
+            'safequeue'
         );
 
         $this->registerWorker();
@@ -46,8 +47,12 @@ class DoctrineQueueProvider extends ServiceProvider
         $this->registerWorkCommand();
 
         $this->app->singleton('safeQueue.worker', function ($app) {
-            return new Worker($app['queue'], $app['events'],
-                $app['em'], $app['Illuminate\Contracts\Debug\ExceptionHandler']);
+            return new Worker(
+                $app['queue'],
+                $app['events'],
+                $app['em'],
+                $app['Illuminate\Contracts\Debug\ExceptionHandler']
+            );
         });
     }
 
