@@ -50,7 +50,7 @@ class DoctrineQueueProvider extends ServiceProvider
 
         $this->app->singleton('safeQueue.worker', function ($app) {
             $isDownForMaintenance = function () {
-                return $app->isDownForMaintenance();
+                return $this->app->isDownForMaintenance();
             };
             
             return new Worker(
