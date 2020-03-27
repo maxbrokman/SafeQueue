@@ -5,10 +5,13 @@ namespace MaxBrokman\SafeQueue;
 
 use Doctrine\ORM\EntityManager;
 use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
+use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
@@ -30,15 +33,17 @@ use Throwable;
      * @param Dispatcher                 $events
      * @param EntityManager              $entityManager
      * @param Stopper                    $stopper
+     * @param ExceptionHandler           $exceptions
      */
     public function __construct(
         QueueManager $manager,
         FailedJobProviderInterface $failer,
         Dispatcher $events,
         EntityManager $entityManager,
-        Stopper $stopper
+        Stopper $stopper,
+        ExceptionHandler $exceptions
     ) {
-        parent::__construct($manager, $failer, $events);
+        parent::__construct($manager, $events, $exceptions);
 
         $this->entityManager = $entityManager;
         $this->stopper       = $stopper;
@@ -49,32 +54,31 @@ use Throwable;
      *
      * This is a slight re-working of the parent implementation to aid testing.
      *
-     * @param  string $connectionName
-     * @param  null   $queue
-     * @param  int    $delay
-     * @param  int    $memory
-     * @param  int    $sleep
-     * @param  int    $maxTries
+     * @param  string                          $connectionName
+     * @param  null                            $queue
+     * @param  \Illuminate\Queue\WorkerOptions $options
      * @return void
      */
-    public function daemon($connectionName, $queue = null, $delay = 0, $memory = 128, $sleep = 3, $maxTries = 0)
+    public function daemon($connectionName, $queue, WorkerOptions $options)
     {
         $lastRestart = $this->getTimestampOfLastQueueRestart();
 
         while (true) {
-            if ($this->daemonShouldRun()) {
-                $canContinue = $this->runNextJobForDaemon(
-                    $connectionName, $queue, $delay, $sleep, $maxTries
+            $this->registerTimeoutHandler($options);
+
+            if ($this->daemonShouldRun($options)) {
+                $canContinue = $this->runNextJob(
+                    $connectionName, $queue, $options
                 );
 
                 if ($canContinue === false) {
                     break;
                 }
             } else {
-                $this->sleep($sleep);
+                $this->sleep($options->sleep);
             }
 
-            if ($this->memoryExceeded($memory) || $this->queueShouldRestart($lastRestart)) {
+            if ($this->memoryExceeded($options->memory) || $this->queueShouldRestart($lastRestart)) {
                 break;
             }
         }
@@ -87,24 +91,21 @@ use Throwable;
      */
     public function stop()
     {
+        $this->events->fire(new WorkerStopping);
+
         $this->stopper->stop();
     }
 
     /**
-     * The parent class implementation of this method just carries on in case of error, but this
-     * could potentially leave the entity manager in a bad state.
+     * We clear the entity manager, assert that it's open and also assert that
+     * the database has an open connection before running each job.
      *
-     * We also clear the entity manager before working a job for good measure, this will help us better
-     * simulate a single request model.
-     *
-     * @param  string $connectionName
-     * @param  string $queue
-     * @param  int    $delay
-     * @param  int    $sleep
-     * @param  int    $maxTries
+     * @param  string                          $connectionName
+     * @param  string                          $queue
+     * @param  \Illuminate\Queue\WorkerOptions $options
      * @return bool
      */
-    protected function runNextJobForDaemon($connectionName, $queue, $delay, $sleep, $maxTries)
+    public function runNextJob($connectionName, $queue, WorkerOptions $options)
     {
         $this->entityManager->clear();
 
@@ -121,7 +122,21 @@ use Throwable;
         $this->assertGoodDatabaseConnection();
 
         try {
-            $this->daemonPop($connectionName, $queue, $delay, $sleep, $maxTries);
+            $job = $this->getNextJob(
+                $this->manager->connection($connectionName), $queue
+            );
+
+            // If we're able to pull a job off of the stack, we will process it and then return
+            // from this method. If there is no job on the queue, we will "sleep" the worker
+            // for the specified number of seconds, then keep processing jobs after sleep.
+            if ($job) {
+                $this->process(
+                    $connectionName, $job, $options
+                );
+
+                return true;
+            }
+
         } catch (Exception $e) {
             if ($this->exceptions) {
                 $this->exceptions->report($e);
@@ -140,38 +155,9 @@ use Throwable;
             }
         }
 
+        $this->sleep($options->sleep);
+
         return true;
-    }
-
-    /**
-     * We also have to override this method, because Laravel swallows exceptions down here as well (presumably
-     * because this is shared between work and daemon)
-     *
-     * @param string $connectionName
-     * @param string $queue
-     * @param int $delay
-     * @param int $sleep
-     * @param int $maxTries
-     * @return array
-     */
-    private function daemonPop($connectionName, $queue = null, $delay = 0, $sleep = 3, $maxTries = 0)
-    {
-        $connection = $this->manager->connection($connectionName);
-
-        $job = $this->getNextJob($connection, $queue);
-
-        // If we're able to pull a job off of the stack, we will process it and
-        // then immediately return back out. If there is no job on the queue
-        // we will "sleep" the worker for the specified number of seconds.
-        if (!is_null($job)) {
-            return $this->process(
-                $this->manager->getName($connectionName), $job, $maxTries, $delay
-            );
-        }
-
-        $this->sleep($sleep);
-
-        return ['job' => null, 'failed' => false];
     }
 
     /**

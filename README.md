@@ -1,8 +1,8 @@
 ## SafeQueue
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/maxbrokman/safe-queue.svg)](https://packagist.org/packages/maxbrokman/safe-queue)
-[![Build Status](https://travis-ci.org/maxbrokman/SafeQueue.svg?branch=0.1)](https://travis-ci.org/maxbrokman/SafeQueue)
-[![Coverage Status](https://coveralls.io/repos/github/maxbrokman/SafeQueue/badge.svg?branch=0.1)](https://coveralls.io/github/maxbrokman/SafeQueue?branch=0.2)
+[![Build Status](https://travis-ci.org/maxbrokman/SafeQueue.svg?branch=0.2)](https://travis-ci.org/maxbrokman/SafeQueue)
+[![Coverage Status](https://coveralls.io/repos/github/maxbrokman/SafeQueue/badge.svg?branch=0.2)](https://coveralls.io/github/maxbrokman/SafeQueue?branch=0.2)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A Laravel Queue worker that's safe for use with Laravel Doctrine
@@ -19,7 +19,7 @@ A Laravel Queue worker that's safe for use with Laravel Doctrine
 Version | Supported Laravel Versions 
 ------- | -------------------------- 
 0.1.* | 5.1, 5.2 
-0.2.* | 5.3 
+0.2.* | ^5.3.16 
 
 #### How it Works
 
@@ -32,13 +32,38 @@ before working each job.
 Install using composer
 
 ```
-composer require "maxbrokman/safe-queue=0.1.*"
+composer require maxbrokman/safe-queue
 ```
 
 Once you've got the codez add the following to your service providers in `app.php`
 
 ```
 MaxBrokman\SafeQueue\DoctrineQueueProvider::class
+```
+##### Lumen
+
+Create the config file `config/safequeue.php` and load it: `$app->configure('safequeue');`
+```
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Worker Command Name
+    |--------------------------------------------------------------------------
+    |
+    | Configure the signature / name of the Work Command here. The default
+    | is to rename the command to 'doctrine:queue:work', however you can
+    | rename it to whatever you want by changing this value.
+    |
+    | To override the Laravel 'queue:work' command name just set this
+    | to a false value or 'queue:work'.
+    |
+    */
+    'command_name' => 'doctrine:queue:work',
+
+];
 ```
 
 #### Usage

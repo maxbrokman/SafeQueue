@@ -11,6 +11,8 @@ use MaxBrokman\SafeQueue\Console\WorkCommand;
  */
 class DoctrineQueueProvider extends ServiceProvider
 {
+    protected $defer = true;
+
     /**
      * Register the service provider.
      *
@@ -18,7 +20,22 @@ class DoctrineQueueProvider extends ServiceProvider
      */
     public function register()
     {
+        if (!$this->isLumen()) {
+            $this->publishes([
+                __DIR__ . '/../config/safequeue.php' => config_path('safequeue.php'),
+            ], 'safequeue');
+        }
+
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/safequeue.php', 'safequeue'
+        );
+
         $this->registerWorker();
+    }
+
+    public function boot()
+    {
+        $this->commands('command.safeQueue.work');
     }
 
     /**
@@ -29,7 +46,8 @@ class DoctrineQueueProvider extends ServiceProvider
         $this->registerWorkCommand();
 
         $this->app->singleton('safeQueue.worker', function ($app) {
-            return new Worker($app['queue'], $app['queue.failer'], $app['events'], $app['em'], new Stopper());
+            return new Worker($app['queue'], $app['queue.failer'], $app['events'],
+                $app['em'], new Stopper(), $app['Illuminate\Contracts\Debug\ExceptionHandler']);
         });
     }
 
@@ -39,9 +57,31 @@ class DoctrineQueueProvider extends ServiceProvider
     protected function registerWorkCommand()
     {
         $this->app->singleton('command.safeQueue.work', function ($app) {
-            return new WorkCommand($app['safeQueue.worker']);
+            return new WorkCommand(
+                $app['safeQueue.worker'],
+                $app['config']->get('safequeue')
+            );
         });
+    }
 
-        $this->commands('command.safeQueue.work');
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [
+            'safeQueue.worker',
+            'command.safeQueue.work'
+        ];
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isLumen()
+    {
+        return str_contains($this->app->version(), 'Lumen');
     }
 }
