@@ -1,7 +1,6 @@
 <?php
 
-
-namespace MaxBrokman\SafeQueue;
+namespace Digbang\SafeQueue;
 
 use Exception;
 

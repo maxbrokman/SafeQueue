@@ -1,17 +1,21 @@
 {
-    "name": "maxbrokman/safe-queue",
-    "description": "A Laravel Doctrine friendly daemonising queue worker for Laravel 5",
+    "name": "digbang/safe-queue",
+    "description": "A Laravel Doctrine friendly daemonising queue worker for Laravel",
     "license": "MIT",
     "authors": [
         {
             "name": "Max Brokman",
             "email": "max.brokman@vice.com"
+        },
+        {
+            "name": "Dario Govergun",
+            "email": "dgovergun@digbang.com"
         }
     ],
     "require": {
-        "php": ">=5.6",
-        "illuminate/queue": "^5.4.9",
-        "laravel-doctrine/orm": "^1.0"
+        "php": ">=7.2",
+        "illuminate/queue": "^5.4.9|^6.0|^7.0",
+        "laravel-doctrine/orm": "^1.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.3",
@@ -21,12 +25,12 @@
     },
     "autoload": {
         "psr-4": {
-            "MaxBrokman\\SafeQueue\\": "src/"
+            "Digbang\\SafeQueue\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "test\\MaxBrokman\\SafeQueue\\": "tests/"
+            "test\\Digbang\\SafeQueue\\": "tests/"
         }
     }
 }

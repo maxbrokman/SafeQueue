@@ -1,10 +1,10 @@
 <?php
 
 
-namespace tests\MaxBrokman\SafeQueue\Console;
+namespace tests\Digbang\SafeQueue\Console;
 
-use MaxBrokman\SafeQueue\Console\WorkCommand;
-use MaxBrokman\SafeQueue\Worker;
+use Digbang\SafeQueue\Console\WorkCommand;
+use Digbang\SafeQueue\Worker;
 use Mockery as m;
 use ReflectionClass;
 

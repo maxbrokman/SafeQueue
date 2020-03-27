@@ -1,7 +1,6 @@
 <?php
 
-
-namespace MaxBrokman\SafeQueue;
+namespace Digbang\SafeQueue;
 
 class QueueSetupException extends \Exception
 {

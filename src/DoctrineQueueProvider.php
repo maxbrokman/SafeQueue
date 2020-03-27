@@ -1,10 +1,9 @@
 <?php
 
-
-namespace MaxBrokman\SafeQueue;
+namespace Digbang\SafeQueue;
 
 use Illuminate\Support\ServiceProvider;
-use MaxBrokman\SafeQueue\Console\WorkCommand;
+use Digbang\SafeQueue\Console\WorkCommand;
 
 /**
  * @codeCoverageIgnore

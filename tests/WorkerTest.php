@@ -1,7 +1,7 @@
 <?php
 
 
-namespace tests\MaxBrokman\SafeQueue;
+namespace tests\Digbang\SafeQueue;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
@@ -13,7 +13,7 @@ use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
-use MaxBrokman\SafeQueue\Worker;
+use Digbang\SafeQueue\Worker;
 use Mockery as m;
 
 class WorkerTest extends \PHPUnit_Framework_TestCase

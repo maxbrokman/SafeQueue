@@ -1,10 +1,9 @@
 <?php
 
-
-namespace MaxBrokman\SafeQueue\Console;
+namespace Digbang\SafeQueue\Console;
 
 use Illuminate\Queue\Console\WorkCommand as IlluminateWorkCommand;
-use MaxBrokman\SafeQueue\Worker;
+use Digbang\SafeQueue\Worker;
 
 class WorkCommand extends IlluminateWorkCommand
 {
