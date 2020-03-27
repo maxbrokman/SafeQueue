@@ -65,7 +65,7 @@ return [
 #### Usage
 
 ```
-php artisan doctrine:queue:work  connection --daemon -sleep=3 --tries=3 ...
+php artisan doctrine:queue:work  connection --daemon --sleep=3 --tries=3 ...
 ```
 
 All options are identical to Laravel's own `queue:work` method.
