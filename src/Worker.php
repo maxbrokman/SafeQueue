@@ -33,7 +33,7 @@ use Throwable;
         QueueManager $manager,
         Dispatcher $events,
         EntityManagerInterface $entityManager,
-        ExceptionHandler $exceptions
+        ExceptionHandler $exceptions,
         callable $isDownForMaintenance
     ) {
         parent::__construct($manager, $events, $exceptions, $isDownForMaintenance);
