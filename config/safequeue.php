@@ -17,4 +17,15 @@ return [
     */
     'command_name' => 'doctrine:queue:work',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Store
+    |--------------------------------------------------------------------------
+    |
+    | Used by Workers to store job-related temporary data.
+    | If not specified a default store will be used.
+    |
+    */
+    'cache_store' => null
+
 ];

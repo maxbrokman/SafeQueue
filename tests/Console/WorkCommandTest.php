@@ -1,14 +1,15 @@
 <?php
 
-
 namespace tests\MaxBrokman\SafeQueue\Console;
 
 use MaxBrokman\SafeQueue\Console\WorkCommand;
 use MaxBrokman\SafeQueue\Worker;
 use Mockery as m;
 use ReflectionClass;
+use PHPUnit\Framework\TestCase;
+use Illuminate\Contracts\Cache\Repository as Cache;
 
-class WorkCommandTest extends \PHPUnit_Framework_TestCase
+class WorkCommandTest extends TestCase
 {
     /**
      * @var Worker|m\MockInterface
@@ -35,12 +36,18 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
      */
     private $configStub;
 
-    protected function setUp()
+    /**
+     * @var Cache
+     */
+    private $cache;
+
+    protected function setUp(): void
     {
+        $this->cache               = m::mock(Cache::class);
         $this->worker              = m::mock(Worker::class);
         $this->defaultCommandName  = 'doctrine:queue:work';
         $this->configStub          = ['command_name' => $this->defaultCommandName];
-        $this->command             = new WorkCommand($this->worker, $this->configStub);
+        $this->command             = new WorkCommand($this->worker, $this->cache, $this->configStub);
         $this->testNewCommandNames = [
             'queue:work',
             'custom-queue:work',
@@ -80,9 +87,11 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
     public function testCommandNameCanBeConfigured()
     {
         foreach ($this->testNewCommandNames as $newCommandName) {
-            $this->command = new WorkCommand($this->worker, [
-                'command_name' => $newCommandName
-            ]);
+            $this->command = new WorkCommand(
+                $this->worker,
+                $this->cache,
+                ['command_name' => $newCommandName]
+            );
 
             $signature = $this->getPropertyViaReflection('signature');
 
@@ -92,9 +101,11 @@ class WorkCommandTest extends \PHPUnit_Framework_TestCase
 
     public function testCommandNameCanConfiguredToLaravelDefaultBySettingConfigValueToFalse()
     {
-        $this->command = new WorkCommand($this->worker, [
-            'command_name' => false
-        ]);
+        $this->command = new WorkCommand(
+            $this->worker,
+            $this->cache,
+            ['command_name' => false]
+        );
 
         $signature = $this->getPropertyViaReflection('signature');
 

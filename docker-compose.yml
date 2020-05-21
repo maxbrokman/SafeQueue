@@ -1,0 +1,9 @@
+version: '3'
+services:
+    php-safequeue:
+      build: 
+        context: .
+        dockerfile: Dockerfile
+      container_name: php-safequeue
+      volumes:
+       - .:/var/www/html

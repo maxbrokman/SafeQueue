@@ -1,6 +1,5 @@
 <?php
 
-
 namespace MaxBrokman\SafeQueue;
 
 use Doctrine\ORM\EntityManager;
@@ -13,7 +12,7 @@ use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-/*final*/ class Worker extends IlluminateWorker
+class Worker extends IlluminateWorker
 {
     /**
      * @var EntityManager
@@ -31,10 +30,11 @@ use Throwable;
     public function __construct(
         QueueManager $manager,
         Dispatcher $events,
-        EntityManager $entityManager,
-        ExceptionHandler $exceptions
+        ExceptionHandler $exceptions,
+        callable $isDownForMaintenance,
+        EntityManager $entityManager
     ) {
-        parent::__construct($manager, $events, $exceptions);
+        parent::__construct($manager, $events, $exceptions, $isDownForMaintenance);
 
         $this->entityManager = $entityManager;
     }
