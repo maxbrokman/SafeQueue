@@ -1,6 +1,5 @@
 <?php
 
-
 namespace tests\MaxBrokman\SafeQueue;
 
 use Doctrine\DBAL\Connection;
@@ -15,8 +14,9 @@ use Illuminate\Queue\Worker as IlluminateWorker;
 use Illuminate\Queue\WorkerOptions;
 use MaxBrokman\SafeQueue\Worker;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
-class WorkerTest extends \PHPUnit_Framework_TestCase
+class WorkerTest extends TestCase
 {
     /**
      * @var QueueManager|m\MockInterface
@@ -63,7 +63,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
      */
     private $options;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->queueManager  = m::mock(QueueManager::class);
         $this->queue         = m::mock(Queue::class);
@@ -73,7 +73,13 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->cache         = m::mock(Repository::class);
         $this->exceptions    = m::mock(Handler::class);
 
-        $this->worker = new Worker($this->queueManager, $this->dispatcher, $this->entityManager, $this->exceptions);
+        $this->worker = new Worker(
+            $this->queueManager,
+            $this->dispatcher,
+            $this->exceptions,
+            fn() => false,
+            $this->entityManager
+        );
 
         $this->options = new WorkerOptions(0, 128, 0, 0, 0);
 
@@ -84,7 +90,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->entityManager->shouldReceive('getConnection')->andReturn($this->dbConnection);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         m::close();
     }
@@ -97,7 +103,6 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             $jobs = $job;
         }
 
-        $this->queueManager->shouldReceive('isDownForMaintenance')->andReturn(false);
         $this->queueManager->shouldReceive('connection')->andReturn($this->queue);
         $this->queueManager->shouldReceive('getName')->andReturn('test');
 

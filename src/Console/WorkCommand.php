@@ -1,10 +1,11 @@
 <?php
 
-
 namespace MaxBrokman\SafeQueue\Console;
 
 use Illuminate\Queue\Console\WorkCommand as IlluminateWorkCommand;
 use MaxBrokman\SafeQueue\Worker;
+use Mockery as m;
+use Illuminate\Contracts\Cache\Repository as Cache;
 
 class WorkCommand extends IlluminateWorkCommand
 {
@@ -23,11 +24,11 @@ class WorkCommand extends IlluminateWorkCommand
      * @param Worker $worker
      * @param array  $config
      */
-    public function __construct(Worker $worker, $config)
+    public function __construct(Worker $worker, Cache $cache, array $config)
     {
         $this->renameCommandInSignature($config['command_name']);
 
-        parent::__construct($worker);
+        parent::__construct($worker, $cache);
     }
 
     public function renameCommandInSignature($commandName)

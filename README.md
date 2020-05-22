@@ -21,6 +21,7 @@ Version | Supported Laravel Versions
 0.1.* | 5.1, 5.2 
 0.2.* | ^5.3.16 
 0.3.* | ^5.4.9
+0.4.* | ^7.0 
 
 #### How it Works
 
@@ -64,6 +65,17 @@ return [
     */
     'command_name' => 'doctrine:queue:work',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Store
+    |--------------------------------------------------------------------------
+    |
+    | Used by Workers to store job-related temporary data.
+    | If not specified a default store will be used.
+    |
+    */
+    'cache_store' => null
+
 ];
 ```
 
@@ -77,13 +89,13 @@ All options are identical to Laravel's own `queue:work` method.
 
 #### Contributing
 
-PRs welcome. Please send PRs to the relevant branch (`0.1, 0.2, 0.3`) depending on which version of Laravel you are targeting.
+PRs welcome. Please send PRs to the relevant branch (`0.1, 0.2, 0.3, 0.4`) depending on which version of Laravel you are targeting.
 
-Run tests and style fixer.
+Run tests. Build and run docker container.
 
 ```
-vendor/bin/php-cs-fixer fix
-vendor/bin/phpunit
+docker-compose up -d --build
+docker exec -it php-safequeue php vendor/bin/phpunit tests
 ```
 
 #### Maintenance
