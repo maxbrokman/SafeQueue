@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "12f16725f282dc12e62a8b6ce6c72779",
+    "content-hash": "7f1ca3206b6e60979d4d624a3277de1a",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1427,16 +1427,16 @@
         },
         {
             "name": "illuminate/queue",
-            "version": "v6.0.4",
+            "version": "v6.18.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/queue.git",
-                "reference": "5e667f06e4ee8cad830aa6f18ae01f503ad83afc"
+                "reference": "e362b16043e4c7ffaffc82ae7496b184c05e3807"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/queue/zipball/5e667f06e4ee8cad830aa6f18ae01f503ad83afc",
-                "reference": "5e667f06e4ee8cad830aa6f18ae01f503ad83afc",
+                "url": "https://api.github.com/repos/illuminate/queue/zipball/e362b16043e4c7ffaffc82ae7496b184c05e3807",
+                "reference": "e362b16043e4c7ffaffc82ae7496b184c05e3807",
                 "shasum": ""
             },
             "require": {
@@ -1463,7 +1463,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "6.0-dev"
+                    "dev-master": "6.x-dev"
                 }
             },
             "autoload": {
@@ -1483,7 +1483,7 @@
             ],
             "description": "The Illuminate Queue package.",
             "homepage": "https://laravel.com",
-            "time": "2019-09-11T12:03:36+00:00"
+            "time": "2020-03-12T11:32:25+00:00"
         },
         {
             "name": "illuminate/routing",
@@ -5477,7 +5477,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.6"
+        "php": "^7.2"
     },
     "platform-dev": []
 }
