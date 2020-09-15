@@ -14,12 +14,12 @@
     ],
     "require": {
         "php": ">=7.2",
-        "illuminate/queue": "^6.0|^7.0",
+        "illuminate/queue": "^7.0|^8.0",
         "laravel-doctrine/orm": "^1.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.3",
-        "mockery/mockery": "^0.9.4",
+        "phpunit/phpunit": "^8.0|^9.3",
+        "mockery/mockery": "^1.3.1",
         "satooshi/php-coveralls": "^1.0",
         "friendsofphp/php-cs-fixer": "^2.15"
     },
